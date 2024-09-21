@@ -1,0 +1,76 @@
+class TrainCoach {
+  seats: { seat_id: string, is_booked: boolean }[][] = [];
+  totalRows: number = 12;
+  seatsPerRow: number = 7;
+  
+  constructor() {
+    this.initializeSeats();
+  }
+
+  // Initialize the seating arrangement
+  initializeSeats() {
+    let alphabet = 'ABCDEFGHIJKL';  // 12 rows, last row (L) has only 3 seats
+    for (let i = 0; i < this.totalRows; i++) {
+      this.seats[i] = [];
+      let seatsInThisRow = (i == this.totalRows - 1) ? 3 : this.seatsPerRow; // Last row has only 3 seats
+      for (let j = 0; j < seatsInThisRow; j++) {
+        this.seats[i].push({
+          seat_id: `${alphabet[i]}${j + 1}`,
+          is_booked: false
+        });
+      }
+    }
+  }
+
+  // Function to book seats
+  bookSeats(requiredSeats: number): string[] | string {
+    if (requiredSeats > 7) {
+      return "You can only book up to 7 seats at once.";
+    }
+
+    let bookedSeats: string[] = [];
+    
+    // Try to find a row with enough contiguous seats
+    for (let i = 0; i < this.totalRows; i++) {
+      let availableSeats = this.seats[i].filter(seat => !seat.is_booked);
+      if (availableSeats.length >= requiredSeats) {
+        // Book the required seats in this row
+        for (let j = 0; j < requiredSeats; j++) {
+          availableSeats[j].is_booked = true;
+          bookedSeats.push(availableSeats[j].seat_id);
+        }
+        return bookedSeats;
+      }
+    }
+
+    // If no row has enough contiguous seats, book nearby seats
+    for (let i = 0; i < this.totalRows; i++) {
+      for (let j = 0; j < this.seats[i].length; j++) {
+        if (!this.seats[i][j].is_booked && bookedSeats.length < requiredSeats) {
+          this.seats[i][j].is_booked = true;
+          bookedSeats.push(this.seats[i][j].seat_id);
+        }
+      }
+    }
+
+    return bookedSeats.length === requiredSeats ? bookedSeats : "Not enough seats available.";
+  }
+
+  // Function to display seating arrangement (for visualization)
+  displaySeats() {
+    for (let i = 0; i < this.totalRows; i++) {
+      let rowDisplay = this.seats[i].map(seat => seat.is_booked ? `[${seat.seat_id}]` : seat.seat_id).join(' ');
+      console.log(rowDisplay);
+    }
+  }
+}
+
+// Sample usage:
+let coach = new TrainCoach();
+console.log("Initial Seat Availability:");
+coach.displaySeats();
+
+let bookingResult = coach.bookSeats(5);
+console.log("\nSeats Booked:", bookingResult);
+console.log("\nUpdated Seat Availability:");
+coach.displaySeats();
